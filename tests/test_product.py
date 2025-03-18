@@ -3,14 +3,17 @@ from fastapi.testclient import TestClient
 from uuid import UUID
 from datetime import datetime
 from app.main import app
-from app.database import Base, engine
+from app.database import Base
 from app.models.product import Product
+from tests.test_database import test_engine, override_get_db
+
+app.dependency_overrides[get_db] = override_get_db
 
 @pytest.fixture
 def client():
-    Base.metadata.create_all(bind=engine)
+    Base.metadata.create_all(bind=test_engine)
     yield TestClient(app)
-    Base.metadata.drop_all(bind=engine)
+    Base.metadata.drop_all(bind=test_engine)
 
 class TestProductValidation:
     def test_valid_product_creation(self, client):
